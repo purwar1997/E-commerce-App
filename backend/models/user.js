@@ -1,5 +1,9 @@
 import mongoose from 'mongoose';
 import AuthRoles from '../utils/authRoles';
+import brcypt from 'bcryptjs';
+import JWT from 'jsonwebtoken';
+import crypto from 'crypto';
+import config from '../server';
 
 // defining a Schema for user
 // new keyword can be omitted
@@ -39,10 +43,36 @@ const userSchema = mongoose.Schema(
     },
   },
   {
+    // mongoose will add two properties of date type on its own to the document
+    // 1. createdAt => specifies when the document was created
+    // 2. updatedAt => specifies when the document was last updated
     timestamps: true,
   }
 );
 
+// pre hook: function will be invoked before save() method runs on a document
+userSchema.pre('save', async function (next) {
+  //  don't use arrow function because then 'this' will refer to the global object
+  // 'this' will refer to the document
+  if (!this.modified('password')) return next();
+  this.password = await brcypt.hash(this.password, 10);
+  next();
+});
+
+// methods can be defined on mongoose Schema
+// these methods will be available to all the documents
+
+userSchema.methods = {
+  comparePassword: async function (password) {
+    return await brcypt.compare(password, this.password);
+  },
+
+  generateJWTtoken: function () {
+    return JWT.sign({ userId: this._id }, config.TOKEN_SECRET, {
+      expiresIn: config.TOKEN_EXPIRES_IN,
+    });
+  },
+};
+
 // creating a model and exporting it
-const User = mongoose.model('user', userSchema);
-export default User;
+export default mongoose.model('User', userSchema);
