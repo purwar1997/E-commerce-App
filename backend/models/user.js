@@ -43,7 +43,7 @@ const userSchema = mongoose.Schema(
     },
   },
   {
-    // mongoose will add two properties of date type on its own to the document
+    // mongoose will add two properties of date type to the document
     // 1. createdAt => specifies when the document was created
     // 2. updatedAt => specifies when the document was last updated
     timestamps: true,
@@ -53,15 +53,17 @@ const userSchema = mongoose.Schema(
 // pre hook: function will be invoked before save() method runs on a document
 userSchema.pre('save', async function (next) {
   //  don't use arrow function because then 'this' will refer to the global object
-  // 'this' will refer to the document
-  if (!this.modified('password')) return next();
+  //  here, 'this' will refer to the document on which save() is called
+  if (!this.isModified('password')) {
+    return next();
+  }
+
   this.password = await brcypt.hash(this.password, 10);
   next();
 });
 
 // methods can be defined on mongoose Schema
 // these methods will be available to all the documents
-
 userSchema.methods = {
   comparePassword: async function (password) {
     return await brcypt.compare(password, this.password);
@@ -71,6 +73,21 @@ userSchema.methods = {
     return JWT.sign({ userId: this._id }, config.TOKEN_SECRET, {
       expiresIn: config.TOKEN_EXPIRES_IN,
     });
+  },
+
+  generateForgotPasswordToken: function () {
+    // randomBytes(size) will produce a random data of 'size' length
+    // toString() will convert that data into a primitive string
+    // 'hex' argument will produce a URL-friendly string
+    const token = crypto.randomBytes(20).toString('hex');
+
+    // encryption of token using crypto module
+    this.forgotPasswordToken = crypto.createHash('SHA256').update(token).digest('hex');
+
+    // token will expire in 30 min
+    this.forgotPasswordExpiry = new Date(Date.now() + 30 * 60 * 1000);
+
+    return token;
   },
 };
 
