@@ -8,7 +8,7 @@ import config from './config/index';
     const res = await mongoose.connect(config.MONGODB_URL);
     console.log(`Database connected: ${res.connection.host}`);
 
-    // 'on' method will listen to error event and a callback will be fired when an error occurs
+    // 'on' method will listen to an error event and a callback will be fired when an error occurs
     app.on('error', err => {
       console.log(`Error: ${err}`);
       throw err;
