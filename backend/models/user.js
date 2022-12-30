@@ -82,7 +82,7 @@ userSchema.methods = {
     const token = crypto.randomBytes(20).toString('hex');
 
     // encryption of token using crypto module
-    this.forgotPasswordToken = crypto.createHash('SHA256').update(token).digest('hex');
+    this.forgotPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
 
     // token will expire in 30 min
     this.forgotPasswordExpiry = new Date(Date.now() + 30 * 60 * 1000);
