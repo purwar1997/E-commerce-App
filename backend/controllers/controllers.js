@@ -2,11 +2,12 @@ import User from '../models/user';
 import asyncHandler from '../services/asyncHandler';
 import CustomError from '../utils/customError';
 import cookieOptions from '../utils/cookieOptions';
+import mailHelper from '../utils/mailHelper';
 
 /**
  * @SIGNUP
  * @route http://localhost:4000/api/auth/signup
- * @description User signup controller for creating a new user
+ * @description Signup controller for creating a new user
  * @parameters name, email, password
  * @returns User object
  */
@@ -24,8 +25,8 @@ export const signup = asyncHandler(async (req, res) => {
     throw new CustomError('User already exists', 400);
   }
 
-  const newUser = new User({ name, email, password });
-  await newUser.save();
+  let newUser = new User({ name, email, password });
+  newUser = await newUser.save();
 
   const token = newUser.generateJWTtoken();
 
@@ -59,7 +60,7 @@ export const login = asyncHandler(async (req, res) => {
   const existingUser = await User.findOne({ email }).select('+password');
 
   if (!existingUser) {
-    throw new CustomError("User doesn't exist", 400);
+    throw new CustomError('User not found', 400);
   }
 
   const passwordMatched = await existingUser.comparePassword(password);
@@ -100,4 +101,52 @@ export const logout = asyncHandler(async (_req, res) => {
     success: true,
     message: 'User is successfully logged out',
   });
+});
+
+/**
+ * @FORGOT_PASSWORD
+ * @route http://localhost:4000/api/auth/password/forgot
+ * @description This controller allows user to reset password by entering his/her email
+ * @parameters email
+ * @returns email sent to reset password
+ */
+
+export const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new CustomError('Email is required', 400);
+  }
+
+  // password field will be omitted because findOne() is a query method
+  const existingUser = await User.findOne({ email });
+
+  if (!existingUser) {
+    throw new CustomError('User not found', 400);
+  }
+
+  const resetToken = existingUser.generateForgotPasswordToken();
+  // validateBeforeSave is used to bypass the schema validation
+  await existingUser.save({ validateBeforeSave: false });
+
+  const resetURL = `${req.protocol}://${req.hostname}/api/auth/password/forgot/reset/${resetToken}`;
+
+  try {
+    await mailHelper({
+      email: existingUser.email,
+      subject: 'Password reset email',
+      text: `Click on this link to reset your password: ${resetURL}`,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Reset password email is successfully sent to ${existingUser.email}`,
+    });
+  } catch (err) {
+    existingUser.forgotPasswordToken = undefined;
+    existingUser.forgotPasswordExpiry = undefined;
+    await existingUser.save({ validateBeforeSave: false });
+
+    throw new CustomError(err.message || 'Unable to send email', 500);
+  }
 });
