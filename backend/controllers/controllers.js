@@ -8,9 +8,10 @@ import bcrypt from 'bcryptjs';
 
 /**
  * @SIGNUP
+ * @REQUEST_TYPE POST
  * @route http://localhost:4000/api/auth/signup
  * @description Signup controller for creating a new user
- * @parameters name, email, password
+ * @parameters name, email, password, confirmPassword
  * @returns User object
  */
 
@@ -49,6 +50,7 @@ export const signup = asyncHandler(async (req, res) => {
 
 /**
  * @LOGIN
+ * @REQUEST_TYPE PUT
  * @route http://localhost:4000/api/auth/login
  * @description Login controller that enables user to login
  * @parameters email, password
@@ -88,6 +90,7 @@ export const login = asyncHandler(async (req, res) => {
 
 /**
  * @LOGOUT
+ * @REQUEST_TYPE GET
  * @route http://localhost:4000/api/auth/logout
  * @description logout controller that enables user to logout
  * @parameters none
@@ -111,6 +114,7 @@ export const logout = asyncHandler(async (_req, res) => {
 
 /**
  * @FORGOT_PASSWORD
+ * @REQUEST_TYPE PUT
  * @route http://localhost:4000/api/auth/password/forgot
  * @description This controller allows user to reset password by entering his email
  * @parameters email
@@ -159,10 +163,11 @@ export const forgotPassword = asyncHandler(async (req, res) => {
 
 /**
  * @RESET_PASSWORD
+ * @REQUEST_TYPE PUT
  * @route http://localhost:4000/api/auth/password/forgot/reset/:resetPasswordToken
  * @description Controller that allows a user to reset his password
  * @parameters token, password, confirmPassword
- * @returns User object
+ * @returns Response object
  */
 
 export const resetPassword = asyncHandler(async (req, res) => {
@@ -182,7 +187,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
   let user = await User.findOne({
     forgotPasswordToken: token,
     forgotPasswordExpiry: { $gt: new Date() },
-  }).select('+password');
+  });
 
   if (!user) {
     throw new CustomError('Password reset token is invalid or expired', 400);
@@ -204,6 +209,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
 
 /**
  * @CHANGE_PASSWORD
+ * @REQUEST_TYPE PUT
  * @route http://localhost:4000/api/auth/password/change
  * @description Controller that allows user to change his password
  * @parameters oldPassword. newPassword
@@ -218,7 +224,7 @@ export const changePassword = asyncHandler(async (req, res) => {
   }
 
   const encryptedPassword = await bcrypt.hash(oldPassword, 10);
-  const user = await User.findOne({ password: encryptedPassword }).select('+password');
+  const user = await User.findOne({ password: encryptedPassword });
 
   if (!user) {
     throw new CustomError('Password invalid', 400);
@@ -230,5 +236,28 @@ export const changePassword = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'User has successfully changed his password',
+  });
+});
+
+/**
+ * @GET_PROFILE
+ * @REQUEST_TYPE GET
+ * @route http://localhost:4000/api/auth/profile
+ * @description Controller to fetch user's profile
+ * @parameters token
+ * @returns User object
+ */
+
+export const getProfile = asyncHandler(async (_req, res) => {
+  const { user } = res;
+
+  if (!user) {
+    throw new CustomError('User not found', 400);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Success in fetching user profile',
+    user,
   });
 });

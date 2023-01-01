@@ -70,7 +70,7 @@ userSchema.methods = {
   },
 
   generateJWTtoken: function () {
-    return JWT.sign({ userId: this._id }, config.TOKEN_SECRET, {
+    return JWT.sign({ userId: this._id, role: this.role }, config.TOKEN_SECRET, {
       expiresIn: config.TOKEN_EXPIRES_IN,
     });
   },
