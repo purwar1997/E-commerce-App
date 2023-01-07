@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import app from './app';
-import config from './config/index';
+import config from './config/config';
 
 // this function is an IIFE (Immediately Invoked Function Expression)
 (async () => {

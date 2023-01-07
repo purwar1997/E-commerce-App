@@ -7,7 +7,7 @@ import mailSender from '../utils/mailSender';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
-/***** controllers for User model *****/
+/***** Controllers for User model *****/
 
 /**
  * @SIGNUP
@@ -26,7 +26,7 @@ export const signup = asyncHandler(async (req, res) => {
   }
 
   if (password !== confirmPassword) {
-    throw new Error("Confirmed password doesn't match with password", 400);
+    throw new CustomError("Confirmed password doesn't match with password", 400);
   }
 
   const existingUser = await User.findOne({ email });
@@ -47,15 +47,15 @@ export const signup = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'User is successfully created',
-    newUser,
+    user: newUser,
   });
 });
 
 /**
  * @LOGIN
- * @REQUEST_TYPE PUT
+ * @REQUEST_TYPE POST
  * @route http://localhost:4000/api/auth/login
- * @description Login controller that enables user to login
+ * @description Controller that enables user to login
  * @parameters email, password
  * @returns User object
  */
@@ -87,7 +87,7 @@ export const login = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'User is successfully logged in',
-    existingUser,
+    user: existingUser,
   });
 });
 
@@ -95,7 +95,7 @@ export const login = asyncHandler(async (req, res) => {
  * @LOGOUT
  * @REQUEST_TYPE GET
  * @route http://localhost:4000/api/auth/logout
- * @description logout controller that enables user to logout
+ * @description Controller that enables user to logout
  * @parameters none
  * @returns response object
  */
@@ -107,7 +107,7 @@ export const logout = asyncHandler(async (_req, res) => {
   });
 
   // clearCookie(name, options) can be used to clear the cookie
-  // res.clearCookie('token');
+  // res.clearCookie('token', cookieOptions);
 
   res.status(200).json({
     success: true,
@@ -117,11 +117,11 @@ export const logout = asyncHandler(async (_req, res) => {
 
 /**
  * @FORGOT_PASSWORD
- * @REQUEST_TYPE PUT
+ * @REQUEST_TYPE POST
  * @route http://localhost:4000/api/auth/password/forgot
- * @description This controller allows user to reset password by entering his email
+ * @description Controller that allows user to reset password by entering his email
  * @parameters email
- * @returns email sent to reset password
+ * @returns Reset password email sent to user
  */
 
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -160,7 +160,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     existingUser.forgotPasswordExpiry = undefined;
     await existingUser.save({ validateBeforeSave: false });
 
-    throw new CustomError(err.message || 'Unable to send email', 500);
+    throw new CustomError(err.message || 'Failed to send reset password email', 500);
   }
 });
 
@@ -168,8 +168,8 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @RESET_PASSWORD
  * @REQUEST_TYPE PUT
  * @route http://localhost:4000/api/auth/password/forgot/reset/:resetPasswordToken
- * @description Controller that allows a user to reset his password
- * @parameters token, password, confirmPassword
+ * @description Controller that allows user to reset his password
+ * @parameters resetPasswordToken, password, confirmPassword
  * @returns Response object
  */
 
@@ -260,12 +260,12 @@ export const getProfile = asyncHandler(async (_req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Success in fetching user profile',
+    message: "Success in fetching user's profile",
     user,
   });
 });
 
-/***** controllers for Category model *****/
+/***** Controllers for Category model *****/
 
 /**
  * @CREATE_CATEGORY
@@ -280,7 +280,7 @@ export const createCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
 
   if (!name) {
-    throw new CustomError('Please enter category name', 400);
+    throw new CustomError('Please provide category name', 400);
   }
 
   const category = await Category.create({ name });
@@ -306,7 +306,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
 
   if (!name) {
-    throw new CustomError('Please enter category name', 400);
+    throw new CustomError('Please provide category name', 400);
   }
 
   await Category.findByIdAndUpdate(categoryId, { name });
@@ -365,12 +365,12 @@ export const getCategory = asyncHandler(async (req, res) => {
  * @returns Array of category objects
  */
 
-export const getCategories = asyncHandler(async (req, res) => {
+export const getCategories = asyncHandler(async (_req, res) => {
   const categories = await Category.find();
 
   res.status(200).json({
     success: true,
-    message: 'All the categories have been fetched',
+    message: 'All the categories have been successfully fetched',
     categories,
   });
 });

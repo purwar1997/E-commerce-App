@@ -1,4 +1,4 @@
-import config from '../config/index';
+import config from '../config/config';
 import transporter from '../config/transporter';
 
 const mailSender = async options => {

@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
-import AuthRoles from '../utils/authRoles';
 import brcypt from 'bcryptjs';
 import JWT from 'jsonwebtoken';
 import crypto from 'crypto';
-import config from '../server';
+import AuthRoles from '../utils/authRoles';
+import config from '../config/config';
 
 // defining a Schema for user
 // new keyword can be omitted
@@ -12,7 +12,7 @@ const userSchema = mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Name is required'],
-      maxLength: [50, 'Name must be less than 50 characters'],
+      maxLength: [50, 'Name should be less than 50 characters'],
       lowercase: true,
       trim: true,
     },
@@ -25,8 +25,8 @@ const userSchema = mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minLength: [6, 'Password must be atleast 6 characters long'],
-      maxLength: [30, 'Password must be less than 30 characters'],
+      minLength: [6, 'Password should be atleast 6 characters long'],
+      maxLength: [30, 'Password should be less than 30 characters'],
       // omits the password field when the database is queried and documents are fetched
       select: false,
     },
@@ -50,7 +50,7 @@ const userSchema = mongoose.Schema(
   }
 );
 
-// pre hook: function will be invoked before save() method runs on a document
+// pre hook: callback function will be invoked before save() method runs on a document
 userSchema.pre('save', async function (next) {
   //  don't use arrow function because then 'this' will refer to the global object
   //  here, 'this' will refer to the document on which save() is called
