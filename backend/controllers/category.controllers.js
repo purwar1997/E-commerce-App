@@ -48,7 +48,7 @@ export const updateCategory = asyncHandler(async (req, res) => {
 
   // {new: true} will return an updated document
   // runValidators option is used to turn on update validators
-  // {runValidators: true} will run the mongoose validators before performing the update operation
+  // {runValidators: true} will run the mongoose validation before performing the update operation
   const updatedCategory = await Category.findByIdAndUpdate(
     categoryId,
     { name },
