@@ -82,7 +82,7 @@ export const deleteCategory = asyncHandler(async (req, res) => {
     throw new CustomError('Category not found', 401);
   }
 
-  //  to free up the memory, use remove()
+  // to free up the memory, use remove()
   category.remove();
 
   res.status(200).json({
