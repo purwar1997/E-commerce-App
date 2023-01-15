@@ -65,10 +65,38 @@ export const addProduct = asyncHandler(async (req, res) => {
       category: fields.categoryId,
     });
 
+    if (!product) {
+      throw new CustomError('Product not created', 400);
+    }
+
     res.status(200).json({
       success: true,
       message: 'Product added successfully',
       product,
     });
+  });
+});
+
+/**
+ * @GET_ALL_PRODUCTS
+ * @request_type GET
+ * @route http://localhost:4000/api/getAllProducts
+ * @description Controller to fetch all the products
+ * @description User and Admin can access all the products
+ * @parameters none
+ * @returns Array of product objects
+ */
+
+export const getAllProducts = asyncHandler(async (_req, res) => {
+  const products = await Product.find();
+
+  if (!products.length) {
+    throw new CustomError('Products not found', 400);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Products successfully fetched',
+    products,
   });
 });
