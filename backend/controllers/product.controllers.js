@@ -81,7 +81,7 @@ export const addProduct = asyncHandler(async (req, res) => {
  * @UPDATE_PRODUCT
  * @request_type PUT
  * @route http://localhost:4000/api/updateProduct/:productId
- * @description Controller to update the product
+ * @description Controller to update a product
  * @description Only admin can update the product
  * @description New images will overwrite the existing ones in AWS S3
  * @parameters fields, files, productId
@@ -161,7 +161,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
  * @request_type DELETE
  * @route http://localhost:4000/api/deleteProduct/:productId
  * @description Controller to delete a product
- * @description Only admin can delete a product
+ * @description Only admin can delete the product
  * @description Product images stored inside AWS S3 will also be deleted
  * @parameters productId
  * @returns Response object
@@ -202,7 +202,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
  * @request_type GET
  * @route http://localhost:4000/api/getProduct/:productId
  * @description Controller to fetch a product
- * @description Both user and admin can access a product
+ * @description Both user and admin can access the product
  * @parameters productId
  * @returns Product object
  */
