@@ -26,7 +26,7 @@ export const addProduct = asyncHandler(async (req, res) => {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      throw new CustomError(err.message || 'Cannot parse form data', 400);
+      throw new CustomError(err.message || 'Failed to parse form data', 400);
     }
     // Mongoose module provides an ObjectId() class which is used to create an ObjectId
     // using the same BSON format that mongoose uses to create _id
@@ -104,7 +104,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
-      throw new CustomError('Cannot parse form data', 400);
+      throw new CustomError('Failed to parse form data', 400);
     }
 
     if (!(fields.name && fields.price && fields.description && fields.categoryId)) {
@@ -151,7 +151,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         product,
       });
     } catch (err) {
-      throw new CustomError(err.message || 'Failed to upload images', 500);
+      throw new CustomError(err.message || 'Failed to upload images', err.code || 500);
     }
   });
 });
