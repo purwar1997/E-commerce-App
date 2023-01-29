@@ -74,7 +74,7 @@ router.get('/api/products', getAllProducts);
 
 router.get('/api/order/generateOrderId', generateRazorpayOrderID);
 router.post('/api/order/create', auth, createOrder);
-router.put('/api/order/cancel/:orderId', cancelOrder);
+router.put('/api/order/cancel/:orderId', auth, cancelOrder);
 router.get('/api/order/:orderId', getOrder);
 router.get('/api/orders', auth, getAllOrders);
 router.put('/api/order/change/address/:orderId', changeOrderAddress);

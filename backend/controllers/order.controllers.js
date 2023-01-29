@@ -117,7 +117,11 @@ export const createOrder = asyncHandler(async (req, res) => {
     });
 
     if (couponCode) {
-      await Coupon.findOneAndUpdate({ code: couponCode }, { isActive: false });
+      await Coupon.findOneAndUpdate(
+        { code: couponCode },
+        { isActive: false },
+        { runValidators: true }
+      );
     }
 
     res.status(200).json({
@@ -209,7 +213,7 @@ export const getOrder = asyncHandler(async (req, res) => {
  * @GET_ALL_ORDERS
  * @request_type GET
  * @route http://localhost:4000/api/orders
- * @description Controller to fetch all the orders
+ * @description Controller to fetch all the orders of a user
  * @parameters none
  * @returns Array of order objects
  */
@@ -218,7 +222,7 @@ export const getAllOrders = asyncHandler(async (_req, res) => {
   const orders = await Order.find({ userId: res.user._id });
 
   if (!orders.length) {
-    throw new CustomError('User never ordered anything', 400);
+    throw new CustomError('Orders not found', 400);
   }
 
   res.status(200).json({
@@ -272,7 +276,7 @@ export const changeOrderContactNo = asyncHandler(async (req, res) => {
   const { phoneNo } = req.body;
 
   if (!phoneNo) {
-    throw new CustomError('Contact No is required', 400);
+    throw new CustomError('Contact no is required', 400);
   }
 
   const order = await Order.findByIdAndUpdate(orderId, { phoneNo }, { new: true });
