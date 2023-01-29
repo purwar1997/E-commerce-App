@@ -4,21 +4,33 @@ import Coupon from '../models/coupon';
 import asyncHandler from '../services/asyncHandler';
 import CustomError from '../utils/customError';
 import razorpay from '../config/razorpay.config';
+import mailSender from '../utils/mailSender';
 
 /**
  * @GENERATE_RAZORPAY_ID
- * @request_type
- * @route http://localhost:4000/api/order/razorpay
+ * @request_type GET
+ * @route http://localhost:4000/api/order/generateId
  * @description Controller to generate a razorpay id which is used to place an order
  * @parameters products, couponCode
  * @returns Order object
  */
 
 export const generateRazorpayOrderID = asyncHandler(async (req, res) => {
-  const { products, couponCode } = req.body;
+  const { products, couponCode, phoneNo, address } = req.body;
 
   if (!products || !products.length) {
     throw new CustomError('Please provide products that user wants to order', 400);
+  }
+
+  if (!phoneNo) {
+    throw new CustomError('Please provide your contact no', 400);
+  }
+
+  if (!address) {
+    throw new CustomError(
+      'Please provide the address where you want your order to be delivered',
+      400
+    );
   }
 
   let amountToPay = products.reduce(async (sum, { productId, count }) => {
@@ -44,8 +56,6 @@ export const generateRazorpayOrderID = asyncHandler(async (req, res) => {
     }
 
     amountToPay = ((100 - coupon.discount) / 100) * amountToPay;
-    coupon.isActive = false;
-    await coupon.save();
   }
 
   const order = await razorpay.orders.create({
@@ -55,12 +65,165 @@ export const generateRazorpayOrderID = asyncHandler(async (req, res) => {
   });
 
   if (!order) {
-    throw new CustomError('Failed to generate order ID', 400);
+    throw new CustomError('Failed to generate order Id', 400);
   }
 
   res.status(200).json({
     success: true,
-    message: 'Order ID generated successfully',
+    message: 'Order Id generated successfully',
     order,
+  });
+});
+
+/**
+ * @CREATE_ORDER
+ * @request_type POST
+ * @route http://localhost:4000/api/order/create
+ * @description Controller to create an order in a database
+ * @description Upon creation of order, a mail will be sent to the user
+ * @parameters payment, products, couponCode, phoneNo, address
+ * @returns Order object
+ */
+
+export const createOrder = asyncHandler(async (req, res) => {
+  const { payment, products, couponCode, phoneNo, address } = req.body;
+
+  if (payment.status === 'failed') {
+    throw new CustomError(`${payment.error_code}: ${payment.error_description}`, 500);
+  }
+
+  if (payment.status === 'captured') {
+    const order = await Order.create({
+      _id: payment.order_id,
+      products,
+      userId: res.user._id,
+      amountPaid: payment.amount,
+      phoneNo,
+      address,
+      coupon: couponCode,
+      paymentMode: payment.method,
+      transactionId: payment.id,
+    });
+
+    if (!order) {
+      throw new CustomError('Order not created', 400);
+    }
+
+    products.forEach(async ({ productId, count }) => {
+      await Product.findByIdAndUpdate(productId, {
+        stock: stock - count,
+        soldUnits: soldUnits + count,
+      });
+    });
+
+    if (couponCode) {
+      await Coupon.findOneAndUpdate({ code: couponCode }, { isActive: false });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Order created successfully',
+      order,
+    });
+
+    try {
+      await mailSender({
+        email: res.user.email,
+        subject: 'Order confirmation mail',
+        text: 'Congratulations, you have successfully placed your order',
+      });
+    } catch (err) {
+      throw new CustomError(err.message || 'Failed to send order confirmation mail', 500);
+    }
+  }
+});
+
+/**
+ * @CANCEL_ORDER
+ * @request_type PUT
+ * @route http://localhost:4000/api/order/cancel/:orderId
+ * @description Controller to cancel an order
+ * @description Upon cancellation of order, a mail will be sent to the user
+ * @parameters orderId
+ * @returns Order object
+ */
+
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+
+  const order = await Order.findByIdAndUpdate(orderId, { orderStatus: 'cancelled' }, { new: true });
+
+  if (!order) {
+    throw new CustomError('Failed to cancel order', 400);
+  }
+
+  order.products.forEach(async ({ productId, count }) => {
+    await Product.findByIdAndUpdate(productId, {
+      stock: stock + count,
+      soldUnits: soldUnits - count,
+    });
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Order has been cancelled',
+    order,
+  });
+
+  try {
+    await mailSender({
+      email: res.user.email,
+      subject: 'Order cancellation mail',
+      text: 'You order has been cancelled',
+    });
+  } catch (err) {
+    throw new CustomError(err.message || 'Failed to send order cancellation mail', 500);
+  }
+});
+
+/**
+ * @GET_ORDER
+ * @request_type GET
+ * @route http://localhost:4000/api/order/:orderId
+ * @description Controller to fetch an order
+ * @parameters orderId
+ * @returns Order object
+ */
+
+export const getOrder = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const order = await Order.findOne({ userId: res.user._id, _id: orderId });
+
+  if (!order) {
+    throw new CustomError('Order not found', 400);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Order fetched successfully',
+    order,
+  });
+});
+
+/**
+ * @GET_ALL_ORDERS
+ * @request_type GET
+ * @route http://localhost:4000/api/orders
+ * @description Controller to fetch all the orders
+ * @parameters none
+ * @returns Array of order objects
+ */
+
+export const getAllOrders = asyncHandler(async (_req, res) => {
+  const orders = await Order.find({ userId: res.user._id });
+
+  if (!orders.length) {
+    throw new CustomError('User never ordered anything', 400);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Orders fetched successfully',
+    orders,
   });
 });

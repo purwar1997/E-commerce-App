@@ -9,7 +9,7 @@ export const auth = asyncHandler(async (req, res, next) => {
 
   let token;
 
-  //  req.headers wil return all the header data in the form of a JS object
+  //  req.headers will return all the header data in the form of a JS object
   if (
     req.cookies.token ||
     (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))

@@ -1,17 +1,18 @@
 import mongoose from 'mongoose';
 
 const orderStatus = {
-  ordered: 'Ordered',
-  shipped: 'Shipped',
-  delivered: 'Delivered',
-  canceled: 'Canceled',
+  Ordered: 'ordered',
+  Shipped: 'shipped',
+  Delivered: 'delivered',
+  Cancelled: 'cancelled',
 };
 
 const paymentMode = {
-  UPI: 'UPI',
-  debitCard: 'Debit Card',
-  creditCard: 'Credit Card',
-  COD: 'Cash On Delivery',
+  Card: 'card',
+  Netbanking: 'netbanking',
+  Wallet: 'wallet',
+  EMI: 'emi',
+  UPI: 'upi',
 };
 
 const orderSchema = mongoose.Schema(
@@ -66,7 +67,7 @@ const orderSchema = mongoose.Schema(
     orderStatus: {
       type: String,
       enum: Object.values(orderStatus),
-      default: orderStatus.ordered,
+      default: orderStatus.Ordered,
     },
   },
   {
