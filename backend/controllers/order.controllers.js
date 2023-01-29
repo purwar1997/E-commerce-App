@@ -9,7 +9,7 @@ import mailSender from '../utils/mailSender';
 /**
  * @GENERATE_RAZORPAY_ID
  * @request_type GET
- * @route http://localhost:4000/api/order/generateId
+ * @route http://localhost:4000/api/order/generateOrderId
  * @description Controller to generate a razorpay id which is used to place an order
  * @parameters products, couponCode
  * @returns Order object
@@ -70,7 +70,7 @@ export const generateRazorpayOrderID = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Order Id generated successfully',
+    message: 'Order Id successfully generated',
     order,
   });
 });
@@ -122,7 +122,7 @@ export const createOrder = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Order created successfully',
+      message: 'Order successfully created',
       order,
     });
 
@@ -192,7 +192,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
 
 export const getOrder = asyncHandler(async (req, res) => {
   const { orderId } = req.params;
-  const order = await Order.findOne({ userId: res.user._id, _id: orderId });
+  const order = await Order.findById(orderId);
 
   if (!order) {
     throw new CustomError('Order not found', 400);
@@ -200,7 +200,7 @@ export const getOrder = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Order fetched successfully',
+    message: 'Order successfully fetched',
     order,
   });
 });
@@ -223,7 +223,67 @@ export const getAllOrders = asyncHandler(async (_req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Orders fetched successfully',
+    message: 'Orders successfully fetched',
     orders,
+  });
+});
+
+/**
+ * @CHANGE_ORDER_ADDRESS
+ * @request_type PUT
+ * @route http://localhost:4000/api/order/change/address/:orderId
+ * @description Controller that allows user to change order delivery address
+ * @parameters address, orderId
+ * @returns Order object
+ */
+
+export const changeOrderAddress = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { address } = req.body;
+
+  if (!address) {
+    throw new CustomError('Address is required', 400);
+  }
+
+  const order = await Order.findByIdAndUpdate(orderId, { address }, { new: true });
+
+  if (!order) {
+    throw new CustomError('Failed to update address', 400);
+  }
+
+  res.status(400).json({
+    success: true,
+    message: 'Address successfully updated',
+    order,
+  });
+});
+
+/**
+ * @CHANGE_ORDER_CONTACT_NO
+ * @request_type PUT
+ * @route http://localhost:4000/api/order/change/phoneNo/:orderId
+ * @description Controller that allows user to change order delivery contact no
+ * @parameters phoneNo, orderId
+ * @returns Order object
+ */
+
+export const changeOrderContactNo = asyncHandler(async (req, res) => {
+  const { orderId } = req.params;
+  const { phoneNo } = req.body;
+
+  if (!phoneNo) {
+    throw new CustomError('Contact No is required', 400);
+  }
+
+  const order = await Order.findByIdAndUpdate(orderId, { phoneNo }, { new: true });
+
+  if (!order) {
+    throw new CustomError('Failed to update contact no', 400);
+  }
+
+  res.status(400).json({
+    success: true,
+    message: 'Contact no successfully updated',
+    order,
   });
 });

@@ -45,7 +45,7 @@ export const signup = asyncHandler(async (req, res) => {
   res.status(200).cookie('token', token, cookieOptions);
   res.status(200).json({
     success: true,
-    message: 'User is successfully created',
+    message: 'User is successfully signed up',
     user: newUser,
   });
 });

@@ -10,7 +10,7 @@ import config from '../config/config';
 /**
  * @ADD_PRODUCT
  * @request_type POST
- * @route http://localhost:4000/api/addProduct
+ * @route http://localhost:4000/api/product/add
  * @description Controller to create a new product
  * @description Only admin can create a new product
  * @description Uses AWS S3 bucket to store images
@@ -68,7 +68,7 @@ export const addProduct = asyncHandler(async (req, res) => {
 
       res.status(200).json({
         success: true,
-        message: 'Product added successfully',
+        message: 'Product successfully added',
         product,
       });
     } catch (err) {
@@ -80,7 +80,7 @@ export const addProduct = asyncHandler(async (req, res) => {
 /**
  * @UPDATE_PRODUCT
  * @request_type PUT
- * @route http://localhost:4000/api/updateProduct/:productId
+ * @route http://localhost:4000/api/product/update/:productId
  * @description Controller to update a product
  * @description Only admin can update the product
  * @description New images will overwrite the existing ones in AWS S3
@@ -147,7 +147,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
       res.status(200).json({
         success: true,
-        message: 'Product updated successfully',
+        message: 'Product successfully updated',
         product,
       });
     } catch (err) {
@@ -159,7 +159,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
 /**
  * @DELETE_PRODUCT
  * @request_type DELETE
- * @route http://localhost:4000/api/deleteProduct/:productId
+ * @route http://localhost:4000/api/product/delete/:productId
  * @description Controller to delete a product
  * @description Only admin can delete the product
  * @description Product images stored inside AWS S3 will also be deleted
@@ -178,7 +178,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
   try {
     await Promise.all(
       product.images.map(
-        async ({ url }, index) =>
+        async ({}, index) =>
           await deleteFile({
             bucketName: config.S3_BUCKET_NAME,
             key: `/product/${productId}/photo_${index + 1}`,
@@ -193,14 +193,14 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Product deleted successfully',
+    message: 'Product successfully deleted',
   });
 });
 
 /**
  * @GET_PRODUCT
  * @request_type GET
- * @route http://localhost:4000/api/getProduct/:productId
+ * @route http://localhost:4000/api/product/:productId
  * @description Controller to fetch a product
  * @description Both user and admin can access the product
  * @parameters productId
@@ -216,7 +216,7 @@ export const getProduct = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Product fetched successfully',
+    message: 'Product successfully fetched',
     product,
   });
 });
@@ -224,7 +224,7 @@ export const getProduct = asyncHandler(async (req, res) => {
 /**
  * @GET_ALL_PRODUCTS
  * @request_type GET
- * @route http://localhost:4000/api/getAllProducts
+ * @route http://localhost:4000/api/products
  * @description Controller to fetch all the products
  * @description User and Admin can access all the products
  * @parameters none

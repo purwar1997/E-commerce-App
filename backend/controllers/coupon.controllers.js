@@ -5,7 +5,7 @@ import CustomError from '../utils/customError';
 /**
  * @CREATE_COUPON
  * @request_type POST
- * @route http://localhost:4000/api/createCoupon
+ * @route http://localhost:4000/api/coupon/create
  * @description Controller to create a coupon
  * @description Only admin and moderator can create the coupon
  * @parameters code, discount
@@ -33,7 +33,7 @@ export const createCoupon = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Coupon created successfully',
+    message: 'Coupon successfully created',
     coupon,
   });
 });
@@ -41,7 +41,7 @@ export const createCoupon = asyncHandler(async (req, res) => {
 /**
  * @DELETE_COUPON
  * @request_type DELETE
- * @route http://localhost:4000/api/deleteCoupon/:couponId
+ * @route http://localhost:4000/api/coupon/delete/:couponId
  * @description Controller to delete a coupon
  * @description Only admin and moderator can delete the coupon
  * @parameters couponId
@@ -59,14 +59,14 @@ export const deleteCoupon = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Coupon deleted successfully',
+    message: 'Coupon successfully deleted',
   });
 });
 
 /**
  * @DEACTIVATE_COUPON
  * @request_type PUT
- * @route http://localhost:4000/api/deactivateCoupon/:couponId
+ * @route http://localhost:4000/api/coupon/deactivate/:couponId
  * @description Controller to deactivate a coupon
  * @description Only admin and moderator can deactivate the coupon
  * @parameters couponId
@@ -86,7 +86,7 @@ export const deactivateCoupon = asyncHandler(async (req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Coupon updated successfully',
+    message: 'Coupon successfully deactivated',
     coupon,
   });
 });
@@ -94,7 +94,7 @@ export const deactivateCoupon = asyncHandler(async (req, res) => {
 /**
  * @GET_ALL_COUPONS
  * @request_type GET
- * @route http://localhost:4000/api/getAllCoupons
+ * @route http://localhost:4000/api/coupons
  * @description Controller to fetch all the coupons
  * @description Only admin and moderator can access coupons
  * @parameters none
@@ -110,7 +110,7 @@ export const getAllCoupons = asyncHandler(async (_req, res) => {
 
   res.status(200).json({
     success: true,
-    message: 'Coupons fetched successfully',
+    message: 'Coupons successfully fetched',
     coupons,
   });
 });

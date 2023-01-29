@@ -49,6 +49,9 @@ const orderSchema = mongoose.Schema(
     phoneNo: {
       type: String,
       required: true,
+      minLength: [10, 'Phone no must be 10 characters long'],
+      maxLength: [10, 'Phone no must be 10 characters long'],
+      match: [/^[0-9]*$/, 'Phone no should only contain digits'],
     },
     address: {
       type: String,
