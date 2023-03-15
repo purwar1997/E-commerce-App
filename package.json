@@ -1,0 +1,19 @@
+{
+  "name": "e-commerce-app",
+  "version": "1.0.0",
+  "description": "Backend of E-commerce app created using express.js and mongodb",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/purwar1997/E-commerce-App.git"
+  },
+  "author": "Shubham Purwar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/purwar1997/E-commerce-App/issues"
+  },
+  "homepage": "https://github.com/purwar1997/E-commerce-App#readme"
+}
