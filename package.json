@@ -2,9 +2,10 @@
   "name": "e-commerce-app",
   "version": "1.0.0",
   "description": "Backend of E-commerce app created using express.js and mongodb",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/purwar1997/E-commerce-App/issues"
   },
-  "homepage": "https://github.com/purwar1997/E-commerce-App#readme"
+  "homepage": "https://github.com/purwar1997/E-commerce-App#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.21"
+  }
 }
