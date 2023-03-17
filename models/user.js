@@ -63,11 +63,10 @@ const userSchema = new mongoose.Schema(
     photo: {
       id: {
         type: String,
-        required: true,
+        unique: true,
       },
       url: {
         type: String,
-        required: true,
         validate: {
           validator: url =>
             validator.isURL(url, { protocols: ['http', 'https'], require_protocol: true }),
@@ -109,7 +108,7 @@ userSchema.methods = {
   },
 
   generateForgotPasswordToken: function () {
-    const token = crypto.randomBytes(30).toString('hex');
+    const token = crypto.randomBytes(20).toString('hex');
     this.forgotPasswordToken = crypto.createHash('sha256').update(token).digest('hex');
     this.forgotPasswordExpiry = new Date(Date.now() + 30 * 60 * 1000);
 

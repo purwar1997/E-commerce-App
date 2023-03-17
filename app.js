@@ -12,6 +12,6 @@ app.use(
     ':remote-addr :date[web] :method :url HTTP/:http-version :status :res[content-type] :res[content-length] - :response-time ms'
   )
 );
-app.use('/api/v1');
+// app.use('/api/v1');
 
 export default app;
