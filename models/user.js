@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: email => validator.isEmail(email),
-        message: 'Please enter valid email id',
+        message: 'Invalid email id',
       },
     },
     phoneNo: {
@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       validate: {
         validator: phoneNo => validator.isMobilePhone(phoneNo),
-        message: 'Please enter valid phone no.',
+        message: 'Invalid phone number',
       },
     },
     password: {
@@ -57,7 +57,7 @@ const userSchema = new mongoose.Schema(
       default: authRoles.User,
       enum: {
         values: Object.values(authRoles),
-        message: 'Unsupported auth role',
+        message: 'Invalid auth role',
       },
     },
     photo: {
