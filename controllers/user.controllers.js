@@ -1,5 +1,6 @@
 import validator from 'validator';
 import crypto from 'crypto';
+import formidable from 'formidable';
 import User from '../models/user.js';
 import asyncHandler from '../services/asyncHandler.js';
 import mailSender from '../services/mailSender.js';
@@ -216,5 +217,144 @@ export const resetPasssword = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Password reset success',
+  });
+});
+
+/**
+ * @GET_PROFILE
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/profile
+ * @description Controller that allows user to fetch his profile
+ * @params none
+ * @returns User object
+ */
+
+export const getProfile = asyncHandler(async (_req, res) => {
+  const { user } = res;
+
+  res.status(200).json({
+    success: true,
+    message: 'User successfully fetched',
+    user,
+  });
+});
+
+/**
+ * @UPDATE_PROFILE
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/profile
+ * @description Controller that allows user to update his profile
+ * @params fields, files
+ * @returns User object
+ */
+
+export const updateProfile = asyncHandler(async (req, res) => {
+  const form = formidable({
+    keepExtensions: true,
+    allowEmptyFiles: false,
+    maxFileSize: 5 * 1024 * 1024,
+    filter: file => file.mimetype.includes('image'),
+  });
+
+  form.parse(req, (err, fields, files) => {
+    if (err) {
+      throw new CustomError('Error parsing form data', 500);
+    }
+
+    if (!fields || Object.keys(fields).length === 0) {
+      throw new CustomError('Fields not provided', 400);
+    }
+
+    const { firstname, lastname, email, phoneNo } = fields;
+
+    if (!(firstname && lastname && email && phoneNo)) {
+      throw new CustomError('Please provide all the details', 400);
+    }
+
+    if (!validator.isEmail(email)) {
+      throw new CustomError('Please provide a valid email', 400);
+    }
+
+    if (!validator.isMobilePhone(phoneNo)) {
+      throw new CustomError('Please provide a valid phone no.', 400);
+    }
+
+    if (!files || Object.keys(files).length === 0) {
+      throw new CustomError('Files not provided', 400);
+    }
+
+    try {
+    } catch (err) {}
+  });
+});
+
+/**
+ * @DELETE_PROFILE
+ * @request_type POST
+ * @route http://localhost:4000/api/v1/profile
+ * @description Controller that allows user to delete his profile
+ * @params password
+ * @returns Response object
+ */
+
+export const deleteProfile = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    throw new CustomError('Please enter your password', 400);
+  }
+
+  let { user } = res;
+  user = await User.findById(user._id).select('+password');
+
+  const isPasswordCorrect = await user.comparePassword(password);
+
+  if (!isPasswordCorrect) {
+    throw new CustomError('Incorrect password', 401);
+  }
+
+  await user.remove();
+
+  res.status(200).clearCookie('token', clearCookieOptions).json({
+    success: true,
+    message: 'Profile successfully deleted',
+  });
+});
+
+/**
+ * @CHANGE_PASSWORD
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/password/change
+ * @description Controller that allows user to change his password
+ * @params oldPassword, newPassword
+ * @returns Response object
+ */
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword) {
+    throw new CustomError('Please enter your existing password', 400);
+  }
+
+  if (!newPassword) {
+    throw new CustomError('Please enter a new password', 400);
+  }
+
+  let { user } = res;
+  user = await User.findById(user._id).select('+password');
+
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new CustomError('Incorrect password', 401);
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
   });
 });
