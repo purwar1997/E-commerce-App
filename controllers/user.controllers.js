@@ -3,8 +3,9 @@ import crypto from 'crypto';
 import formidable from 'formidable';
 import User from '../models/user.js';
 import asyncHandler from '../services/asyncHandler.js';
-import mailSender from '../services/mailSender.js';
 import CustomError from '../utils/customError.js';
+import mailSender from '../services/mailSender.js';
+import { fileUpload, fileDelete } from '../services/fileHandlers.js';
 import { createCookieOptions, clearCookieOptions } from '../utils/cookieOptions.js';
 
 /**
@@ -253,10 +254,12 @@ export const updateProfile = asyncHandler(async (req, res) => {
     keepExtensions: true,
     allowEmptyFiles: false,
     maxFileSize: 5 * 1024 * 1024,
+    uploadDir: __dirname + '/uploads',
     filter: file => file.mimetype.includes('image'),
+    filename: () => Date.now(),
   });
 
-  form.parse(req, (err, fields, files) => {
+  form.parse(req, async (err, fields, files) => {
     if (err) {
       throw new CustomError('Error parsing form data', 500);
     }
@@ -283,8 +286,44 @@ export const updateProfile = asyncHandler(async (req, res) => {
       throw new CustomError('Files not provided', 400);
     }
 
-    try {
-    } catch (err) {}
+    let { user } = res;
+    const { photo } = files;
+
+    if (photo) {
+      if (!user.photo) {
+        try {
+          const res = await fileUpload(photo.path);
+          user.photo = { id: res.public_id, url: res.secure_url };
+        } catch (err) {
+          throw new CustomError('Error uploading image on cloudinary', 500);
+        }
+      }
+
+      try {
+        await fileDelete(user.photo.id);
+      } catch (err) {
+        throw new CustomError('Error deleting image on cloudinary', 500);
+      }
+
+      try {
+        const res = await fileUpload(photo.path);
+        user.photo = { id: res.public_id, url: res.secure_url };
+      } catch (err) {
+        throw new CustomError('Error uploading image on cloudinary', 500);
+      }
+    }
+
+    user = await User.findByIdAndUpdate(
+      user._id,
+      { firstname, lastname, email, phoneNo, photo: user.photo },
+      { new: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Profile successfully updated',
+      user,
+    });
   });
 });
 
