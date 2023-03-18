@@ -63,7 +63,6 @@ const userSchema = new mongoose.Schema(
     photo: {
       id: {
         type: String,
-        unique: true,
       },
       url: {
         type: String,

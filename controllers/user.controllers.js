@@ -80,7 +80,7 @@ export const login = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: login.toLowerCase() }).select('+password');
 
   if (!user) {
-    user = await User.findOne({ phoneNo }).select('+password');
+    user = await User.findOne({ phoneNo: login }).select('+password');
   }
 
   if (!user) {
@@ -175,15 +175,15 @@ export const forgotPassword = asyncHandler(async (req, res) => {
  * @request_type PUT
  * @route http://localhost:4000/api/v1/password/reset/:resetPasswordToken
  * @description Controller that allows user to reset his password
- * @params newPassword, confirmPassword
+ * @params password, confirmPassword
  * @returns Response object
  */
 
-export const resetPasssword = asyncHandler(async (req, res) => {
+export const resetPassword = asyncHandler(async (req, res) => {
   const { resetPasswordToken } = req.params;
-  const { newPassword, confirmPassword } = req.body;
+  const { password, confirmPassword } = req.body;
 
-  if (!newPassword) {
+  if (!password) {
     throw new CustomError('Please provide a new password', 400);
   }
 
@@ -191,7 +191,7 @@ export const resetPasssword = asyncHandler(async (req, res) => {
     throw new CustomError('Please confirm your password', 400);
   }
 
-  if (newPassword !== confirmPassword) {
+  if (password !== confirmPassword) {
     throw new CustomError("Password and confirmed password don't match", 400);
   }
 
@@ -210,7 +210,7 @@ export const resetPasssword = asyncHandler(async (req, res) => {
     throw new CustomError('Token invalid or expired', 400);
   }
 
-  user.password = newPassword;
+  user.password = password;
   user.forgotPasswordToken = undefined;
   user.forgotPasswordExpiry = undefined;
   await user.save();
@@ -283,6 +283,7 @@ export const getProfile = asyncHandler(async (_req, res) => {
  * @request_type PUT
  * @route http://localhost:4000/api/v1/profile
  * @description Controller that allows user to update his profile
+ * @description Images are uploaded on cloudinary
  * @params fields, files
  * @returns User object
  */
@@ -292,76 +293,70 @@ export const updateProfile = asyncHandler(async (req, res) => {
     keepExtensions: true,
     allowEmptyFiles: false,
     maxFileSize: 5 * 1024 * 1024,
-    uploadDir: __dirname + '/uploads',
-    filter: file => file.mimetype.includes('image'),
-    filename: () => Date.now(),
+    uploadDir: 'F:\\Full Stack Development\\iNeuron course\\Live Classes\\E-commerce App\\uploads',
+    filter: ({ mimetype }) => mimetype && mimetype.includes('image'),
   });
 
   form.parse(req, async (err, fields, files) => {
-    if (err) {
-      throw new CustomError('Error parsing form data', 500);
-    }
+    try {
+      if (err) {
+        console.log(err);
+        throw new CustomError('Error parsing form data', 500);
+      }
 
-    if (!fields || Object.keys(fields).length === 0) {
-      throw new CustomError('Fields not provided', 400);
-    }
+      if (!fields || Object.keys(fields).length === 0) {
+        throw new CustomError('Fields not provided', 400);
+      }
 
-    const { firstname, lastname, email, phoneNo } = fields;
+      const { firstname, lastname, email, phoneNo } = fields;
 
-    if (!(firstname && lastname && email && phoneNo)) {
-      throw new CustomError('Please provide all the details', 400);
-    }
+      if (!(firstname && lastname && email && phoneNo)) {
+        throw new CustomError('Please provide all the details', 400);
+      }
 
-    if (!validator.isEmail(email)) {
-      throw new CustomError('Please provide a valid email', 400);
-    }
+      if (!validator.isEmail(email)) {
+        throw new CustomError('Please provide a valid email', 400);
+      }
 
-    if (!validator.isMobilePhone(phoneNo)) {
-      throw new CustomError('Please provide a valid phone no.', 400);
-    }
+      if (!validator.isMobilePhone(phoneNo)) {
+        throw new CustomError('Please provide a valid phone no.', 400);
+      }
 
-    if (!files || Object.keys(files).length === 0) {
-      throw new CustomError('Files not provided', 400);
-    }
+      if (!files || Object.keys(files).length === 0) {
+        throw new CustomError('Files not provided', 400);
+      }
 
-    let { user } = res;
-    const { photo } = files;
+      let { user } = res;
+      const { photo } = files;
 
-    if (photo) {
-      if (!user.photo) {
-        try {
-          const res = await fileUpload(photo.path);
+      if (photo) {
+        if (!user.photo.id) {
+          const res = await fileUpload(photo.filepath);
           user.photo = { id: res.public_id, url: res.secure_url };
-        } catch (err) {
-          throw new CustomError('Error uploading image on cloudinary', 500);
+        } else {
+          await fileDelete(user.photo.id);
+          const res = await fileUpload(photo.filepath);
+          user.photo = { id: res.public_id, url: res.secure_url };
         }
       }
 
-      try {
-        await fileDelete(user.photo.id);
-      } catch (err) {
-        throw new CustomError('Error deleting image on cloudinary', 500);
-      }
+      user = await User.findByIdAndUpdate(
+        user._id,
+        { firstname, lastname, email, phoneNo, photo: user.photo },
+        { new: true, runValidators: true }
+      );
 
-      try {
-        const res = await fileUpload(photo.path);
-        user.photo = { id: res.public_id, url: res.secure_url };
-      } catch (err) {
-        throw new CustomError('Error uploading image on cloudinary', 500);
-      }
+      res.status(200).json({
+        success: true,
+        message: 'Profile successfully updated',
+        user,
+      });
+    } catch (err) {
+      res.status(err.code || 500).json({
+        success: false,
+        message: err.message,
+      });
     }
-
-    user = await User.findByIdAndUpdate(
-      user._id,
-      { firstname, lastname, email, phoneNo, photo: user.photo },
-      { new: true, runValidators: true }
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Profile successfully updated',
-      user,
-    });
   });
 });
 
@@ -390,7 +385,7 @@ export const deleteProfile = asyncHandler(async (req, res) => {
     throw new CustomError('Incorrect password', 401);
   }
 
-  await user.remove();
+  await User.deleteOne({ _id: user._id });
 
   res.status(200).clearCookie('token', clearCookieOptions).json({
     success: true,
