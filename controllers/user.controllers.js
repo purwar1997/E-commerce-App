@@ -222,6 +222,44 @@ export const resetPasssword = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @CHANGE_PASSWORD
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/password/change
+ * @description Controller that allows user to change his password
+ * @params oldPassword, newPassword
+ * @returns Response object
+ */
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+
+  if (!oldPassword) {
+    throw new CustomError('Please enter your existing password', 400);
+  }
+
+  if (!newPassword) {
+    throw new CustomError('Please enter a new password', 400);
+  }
+
+  let { user } = res;
+  user = await User.findById(user._id).select('+password');
+
+  const isPasswordCorrect = await user.comparePassword(oldPassword);
+
+  if (!isPasswordCorrect) {
+    throw new CustomError('Incorrect password', 401);
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
+  });
+});
+
+/**
  * @GET_PROFILE
  * @request_type GET
  * @route http://localhost:4000/api/v1/profile
@@ -316,7 +354,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
     user = await User.findByIdAndUpdate(
       user._id,
       { firstname, lastname, email, phoneNo, photo: user.photo },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.status(200).json({
@@ -361,39 +399,121 @@ export const deleteProfile = asyncHandler(async (req, res) => {
 });
 
 /**
- * @CHANGE_PASSWORD
- * @request_type PUT
- * @route http://localhost:4000/api/v1/password/change
- * @description Controller that allows user to change his password
- * @params oldPassword, newPassword
- * @returns Response object
+ * @ADMIN_GET_ALL_USERS
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/admin/users
+ * @description Controller that allows admin to fetch all users
+ * @params none
+ * @returns Array of user objects
  */
 
-export const changePassword = asyncHandler(async (req, res) => {
-  const { oldPassword, newPassword } = req.body;
+export const adminGetUsers = asyncHandler(async (_req, res) => {
+  const users = await User.find();
 
-  if (!oldPassword) {
-    throw new CustomError('Please enter your existing password', 400);
+  if (users.length === 0) {
+    throw new CustomError('No user found', 404);
   }
-
-  if (!newPassword) {
-    throw new CustomError('Please enter a new password', 400);
-  }
-
-  let { user } = res;
-  user = await User.findById(user._id).select('+password');
-
-  const isPasswordCorrect = await user.comparePassword(oldPassword);
-
-  if (!isPasswordCorrect) {
-    throw new CustomError('Incorrect password', 401);
-  }
-
-  user.password = newPassword;
-  await user.save();
 
   res.status(200).json({
     success: true,
-    message: 'Password changed successfully',
+    message: 'Users successfully fetched',
+    users,
+  });
+});
+
+/**
+ * @ADMIN_GET_USER
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/admin/user/:userId
+ * @description Controller that allows admin to fetch user by id
+ * @params userId
+ * @returns User object
+ */
+
+export const adminGetUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw new CustomError('User not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'User successfully fetched',
+    user,
+  });
+});
+
+/**
+ * @ADMIN_UPDATE_USER
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/admin/user/:userId
+ * @description Controller that allows admin to update user role
+ * @params userId, role
+ * @returns User object
+ */
+
+export const adminUpdateUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+
+  const user = await User.findByIdAndUpdate(userId, { role }, { new: true, runValidators: true });
+
+  if (!user) {
+    throw new CustomError('User not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'User successfully updated',
+    user,
+  });
+});
+
+/**
+ * @ADMIN_DELETE_USER
+ * @request_type DELETE
+ * @route http://localhost:4000/api/v1/admin/user/:userId
+ * @description Controller that allows admin to delete user
+ * @params userId
+ * @returns Response object
+ */
+
+export const adminDeleteUser = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const user = await User.findByIdAndDelete(userId);
+
+  if (!user) {
+    throw new CustomError('User not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'User successfully deleted',
+    user,
+  });
+});
+
+/**
+ * @MANAGER_GET_USERS
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/manager/users
+ * @description Controller that allows manager to fetch users who are neither admin nor manager
+ * @params none
+ * @returns Array of user objects
+ */
+
+export const managerGetUsers = asyncHandler(async (_req, res) => {
+  const users = await User.find({ role: 'user' });
+
+  if (users.length === 0) {
+    throw new CustomError('No user found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Users successfully fetched',
+    users,
   });
 });
