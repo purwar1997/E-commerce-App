@@ -1,7 +1,7 @@
 import asyncHandler from '../services/asyncHandler.js';
 import CustomError from '../utils/customError.js';
 
-const customRole = (...roles) =>
+const customRoles = (...roles) =>
   asyncHandler(async (_req, res, next) => {
     const { user } = res;
 
@@ -12,4 +12,4 @@ const customRole = (...roles) =>
     next();
   });
 
-export default customRole;
+export default customRoles;

@@ -293,7 +293,8 @@ export const updateProfile = asyncHandler(async (req, res) => {
     keepExtensions: true,
     allowEmptyFiles: false,
     maxFileSize: 5 * 1024 * 1024,
-    uploadDir: 'F:\\Full Stack Development\\iNeuron course\\Live Classes\\E-commerce App\\uploads',
+    uploadDir:
+      'F:\\Full Stack Development\\iNeuron course\\Live Classes\\E-commerce App\\uploads\\users',
     filter: ({ mimetype }) => mimetype && mimetype.includes('image'),
   });
 

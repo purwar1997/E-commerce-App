@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import userRouter from './routes/user.routes.js';
+import categoryRouter from './routes/category.routes.js';
 
 const app = express();
 
@@ -14,5 +15,6 @@ app.use(
   )
 );
 app.use('/api/v1', userRouter);
+app.use('/api/v1', categoryRouter);
 
 export default app;
