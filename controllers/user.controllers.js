@@ -28,7 +28,7 @@ export const signup = asyncHandler(async (req, res) => {
     throw new CustomError("Password and confirmed password don't match", 400);
   }
 
-  let user = await User.findOne({ email });
+  let user = await User.findOne({ email: email.trim().toLowerCase() });
 
   if (user) {
     throw new CustomError('User already registered', 400);
@@ -486,7 +486,6 @@ export const adminDeleteUser = asyncHandler(async (req, res) => {
   res.status(200).json({
     success: true,
     message: 'User successfully deleted',
-    user,
   });
 });
 
