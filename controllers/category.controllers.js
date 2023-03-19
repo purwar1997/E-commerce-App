@@ -91,6 +91,31 @@ export const deleteCategory = asyncHandler(async (req, res) => {
 });
 
 /**
+ * @GET_CATEGORY
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/category/:categoryId
+ * @description Controller to fetch a category by id
+ * @params categoryId
+ * @returns Category object
+ */
+
+export const getCategory = asyncHandler(async (req, res) => {
+  const { categoryId } = req.params;
+
+  const category = await Category.findById(categoryId);
+
+  if (!category) {
+    throw new CustomError('Category not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Category successfully fetched',
+    category,
+  });
+});
+
+/**
  * @GET_ALL_CATEGORIES
  * @request_type GET
  * @route http://localhost:4000/api/v1/categories
