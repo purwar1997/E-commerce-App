@@ -1,10 +1,10 @@
 import cloudinary from '../config/cloudinary.config.js';
 
-export const fileUpload = async path => {
+export const fileUpload = async (path, folder) => {
   return await cloudinary.uploader.upload(path, {
-    folder: 'users',
+    folder,
     resource_type: 'image',
-    eager: [{ width: 400, crop: 'pad' }],
+    eager: [{ width: 500, crop: 'pad' }],
   });
 };
 

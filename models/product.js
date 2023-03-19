@@ -100,13 +100,13 @@ const productSchema = new mongoose.Schema(
       },
       role: {
         type: String,
+        required: true,
         enum: ['manager', 'admin'],
       },
     },
     lastUpdatedBy: {
       userId: {
         type: mongoose.Types.ObjectId,
-        required: true,
         ref: 'User',
       },
       role: {

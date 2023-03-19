@@ -1,10 +1,10 @@
 import validator from 'validator';
 import crypto from 'crypto';
-import formidable from 'formidable';
 import User from '../models/user.js';
 import asyncHandler from '../services/asyncHandler.js';
 import CustomError from '../utils/customError.js';
 import mailSender from '../services/mailSender.js';
+import formParser from '../services/formParser.js';
 import { fileUpload, fileDelete } from '../services/fileHandlers.js';
 import { createCookieOptions, clearCookieOptions } from '../utils/cookieOptions.js';
 
@@ -289,19 +289,11 @@ export const getProfile = asyncHandler(async (_req, res) => {
  */
 
 export const updateProfile = asyncHandler(async (req, res) => {
-  const form = formidable({
-    keepExtensions: true,
-    allowEmptyFiles: false,
-    maxFileSize: 5 * 1024 * 1024,
-    uploadDir:
-      'F:\\Full Stack Development\\iNeuron course\\Live Classes\\E-commerce App\\uploads\\users',
-    filter: ({ mimetype }) => mimetype && mimetype.includes('image'),
-  });
+  const form = formParser('users');
 
   form.parse(req, async (err, fields, files) => {
     try {
       if (err) {
-        console.log(err);
         throw new CustomError('Error parsing form data', 500);
       }
 
@@ -332,11 +324,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
       if (photo) {
         if (!user.photo.id) {
-          const res = await fileUpload(photo.filepath);
+          const res = await fileUpload(photo.filepath, 'users');
           user.photo = { id: res.public_id, url: res.secure_url };
         } else {
           await fileDelete(user.photo.id);
-          const res = await fileUpload(photo.filepath);
+          const res = await fileUpload(photo.filepath, 'users');
           user.photo = { id: res.public_id, url: res.secure_url };
         }
       }
