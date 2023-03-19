@@ -320,22 +320,22 @@ export const updateProfile = asyncHandler(async (req, res) => {
       }
 
       let { user } = res;
-      const { photo } = files;
+      let { photo } = files;
 
       if (photo) {
         if (!user.photo.id) {
           const res = await fileUpload(photo.filepath, 'users');
-          user.photo = { id: res.public_id, url: res.secure_url };
+          photo = { id: res.public_id, url: res.secure_url };
         } else {
           await fileDelete(user.photo.id);
           const res = await fileUpload(photo.filepath, 'users');
-          user.photo = { id: res.public_id, url: res.secure_url };
+          photo = { id: res.public_id, url: res.secure_url };
         }
       }
 
       user = await User.findByIdAndUpdate(
         user._id,
-        { firstname, lastname, email, phoneNo, photo: user.photo },
+        { firstname, lastname, email, phoneNo, photo },
         { new: true, runValidators: true }
       );
 

@@ -43,6 +43,10 @@ export const addProduct = asyncHandler(async (req, res) => {
         photos = [photos];
       }
 
+      if (photos.length > 5) {
+        throw new CustomError('Maximum five photos can be uploaded for a product', 400);
+      }
+
       photos = await Promise.all(
         photos.map(async photo => {
           const res = await fileUpload(photo.filepath, 'products');
@@ -74,5 +78,53 @@ export const addProduct = asyncHandler(async (req, res) => {
         message: err.message,
       });
     }
+  });
+});
+
+/**
+ * @GET_ALL_PRODUCTS
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/products
+ * @description Controller to fetch all the products
+ * @params none
+ * @returns Array of product objects
+ */
+
+export const getAllProducts = asyncHandler(async (_req, res) => {
+  const products = await Product.find();
+
+  if (products.length === 0) {
+    throw new CustomError('No product found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'All products successfully fetched',
+    products,
+  });
+});
+
+/**
+ * @GET_PRODUCT
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/product/:productId
+ * @description Controller to fetch a product by id
+ * @params productId
+ * @returns Product object
+ */
+
+export const getProduct = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError('Product not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Product successfully fetched',
+    product,
   });
 });
