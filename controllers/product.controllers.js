@@ -2,8 +2,7 @@ import Product from '../models/product.js';
 import asyncHandler from '../services/asyncHandler.js';
 import CustomError from '../utils/customError.js';
 import formParser from '../services/formParser.js';
-import { fileUpload, fileDelete } from '../services/fileHandlers.js';
-import cloudinary from '../config/cloudinary.config.js';
+import { uploadFile, deleteFile } from '../services/fileHandlers.js';
 
 /**
  * @ADD_PRODUCT
@@ -50,7 +49,7 @@ export const addProduct = asyncHandler(async (req, res) => {
 
       photos = await Promise.all(
         photos.map(async photo => {
-          const res = await fileUpload(photo.filepath, 'products');
+          const res = await uploadFile(photo.filepath, 'products');
           return { id: res.public_id, url: res.secure_url };
         })
       );
@@ -127,13 +126,13 @@ export const updateProduct = asyncHandler(async (req, res) => {
 
         await Promise.all(
           product.photos.map(async photo => {
-            await fileDelete(photo.id);
+            await deleteFile(photo.id);
           })
         );
 
         photos = await Promise.all(
           photos.map(async photo => {
-            const res = await fileUpload(photo.filepath, 'products');
+            const res = await uploadFile(photo.filepath, 'products');
             return { id: res.public_id, url: res.secure_url };
           })
         );
@@ -190,7 +189,7 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 
   await Promise.all(
     product.photos.map(async photo => {
-      await fileDelete(photo.id);
+      await deleteFile(photo.id);
     })
   );
 
@@ -247,5 +246,84 @@ export const getAllProducts = asyncHandler(async (_req, res) => {
     success: true,
     message: 'All products successfully fetched',
     products,
+  });
+});
+
+/**
+ * @ADD_PRODUCT_REVIEW
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/product/:productId/review/add
+ * @description Controller that allows user to add product review
+ * @params comment, rating
+ * @returns Product object
+ */
+
+export const addReview = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const { comment, rating } = req.body;
+
+  if (!comment) {
+    throw new CustomError('Please provide a product review', 400);
+  }
+
+  if (!rating) {
+    throw new CustomError('Please provide a product rating', 400);
+  }
+
+  let product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError('Product not found', 404);
+  }
+
+  const { user } = res;
+
+  product.reviews.push({ userId: user._id, name: user.name, comment, rating });
+  product = await product.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Review successfully added',
+    product,
+  });
+});
+
+/**
+ * @UPDATE_PRODUCT_REVIEW
+ * @request_type PUT
+ * @route http://localhost:4000/api/v1/product/:productId/review/update
+ * @description Controller that allows user to update product review
+ * @params comment, rating
+ * @returns Product object
+ */
+
+export const updateReview = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+  const { comment, rating } = req.body;
+
+  if (!comment) {
+    throw new CustomError('Please provide a product review', 400);
+  }
+
+  if (!rating) {
+    throw new CustomError('Please provide a product rating', 400);
+  }
+
+  let product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError('Product not found', 404);
+  }
+
+  const { user } = res;
+
+  const index = product.reviews.findIndex(({ userId }) => userId === user._id);
+  product.reviews.splice(index, 1, { userId: user._id, name: user.name, comment, rating });
+  product = await product.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Review successfully updated',
+    product,
   });
 });
