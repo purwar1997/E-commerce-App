@@ -10,6 +10,7 @@ import {
   getAllProducts,
   addReview,
   updateReview,
+  getAllReviews,
 } from '../controllers/product.controllers.js';
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.route('/products').get(getProducts);
 router.route('/products/all').get(getAllProducts);
 router.route('/product/:productId/review/add').put(auth, addReview);
 router.route('/product/:productId/review/update').put(auth, updateReview);
+router.route('/product/:productId/reviews').get(getAllReviews);
 
 export default router;

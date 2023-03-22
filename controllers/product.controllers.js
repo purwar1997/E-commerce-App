@@ -118,7 +118,7 @@ export const updateProduct = asyncHandler(async (req, res) => {
         throw new CustomError('Please provide all the details', 400);
       }
 
-      const { photos } = files;
+      let { photos } = files;
 
       if (photos) {
         if (!Array.isArray(photos)) {
@@ -306,6 +306,9 @@ export const addReview = asyncHandler(async (req, res) => {
   const { user } = res;
 
   product.reviews.push({ userId: user._id, name: user.name, comment, rating });
+  product.ratings =
+    product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length;
+
   product = await product.save();
 
   res.status(200).json({
@@ -346,11 +349,40 @@ export const updateReview = asyncHandler(async (req, res) => {
 
   const index = product.reviews.findIndex(({ userId }) => userId === user._id);
   product.reviews.splice(index, 1, { userId: user._id, name: user.name, comment, rating });
+
+  product.ratings =
+    product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length;
+
   product = await product.save();
 
   res.status(200).json({
     success: true,
     message: 'Review successfully updated',
     product,
+  });
+});
+
+/**
+ * @GET_PRODUCT_REVIEWS
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/product/:productId/reviews
+ * @description Controller to fetch all the reviews of a particular product
+ * @params productId
+ * @returns Array of reviews
+ */
+
+export const getAllReviews = asyncHandler(async (req, res) => {
+  const { productId } = req.params;
+
+  const product = await Product.findById(productId);
+
+  if (!product) {
+    throw new CustomError('Product not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Reviews successfully fetched',
+    reviews: product.reviews,
   });
 });
