@@ -6,6 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   getProduct,
+  getProducts,
   getAllProducts,
   addReview,
   updateReview,
@@ -19,7 +20,8 @@ router
   .put(auth, customRoles('manager', 'admin'), updateProduct)
   .delete(auth, customRoles('manager', 'admin'), deleteProduct)
   .get(getProduct);
-router.route('/products').get(getAllProducts);
+router.route('/products').get(getProducts);
+router.route('/products/all').get(getAllProducts);
 router.route('/product/:productId/review/add').put(auth, addReview);
 router.route('/product/:productId/review/update').put(auth, updateReview);
 

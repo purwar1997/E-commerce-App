@@ -5,7 +5,7 @@ import asyncHandler from '../services/asyncHandler.js';
 import CustomError from '../utils/customError.js';
 import mailSender from '../services/mailSender.js';
 import formParser from '../services/formParser.js';
-import { fileUpload, fileDelete } from '../services/fileHandlers.js';
+import { uploadFile, deleteFile } from '../services/fileHandlers.js';
 import { createCookieOptions, clearCookieOptions } from '../utils/cookieOptions.js';
 
 /**
@@ -324,11 +324,11 @@ export const updateProfile = asyncHandler(async (req, res) => {
 
       if (photo) {
         if (!user.photo.id) {
-          const res = await fileUpload(photo.filepath, 'users');
+          const res = await uploadFile(photo.filepath, 'users');
           photo = { id: res.public_id, url: res.secure_url };
         } else {
-          await fileDelete(user.photo.id);
-          const res = await fileUpload(photo.filepath, 'users');
+          await deleteFile(user.photo.id);
+          const res = await uploadFile(photo.filepath, 'users');
           photo = { id: res.public_id, url: res.secure_url };
         }
       }

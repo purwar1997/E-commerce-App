@@ -3,6 +3,7 @@ import asyncHandler from '../services/asyncHandler.js';
 import CustomError from '../utils/customError.js';
 import formParser from '../services/formParser.js';
 import { uploadFile, deleteFile } from '../services/fileHandlers.js';
+import WhereClause from '../utils/whereClause.js';
 
 /**
  * @ADD_PRODUCT
@@ -229,7 +230,7 @@ export const getProduct = asyncHandler(async (req, res) => {
 /**
  * @GET_ALL_PRODUCTS
  * @request_type GET
- * @route http://localhost:4000/api/v1/products
+ * @route http://localhost:4000/api/v1/products/all
  * @description Controller to fetch all the products
  * @params none
  * @returns Array of product objects
@@ -245,6 +246,32 @@ export const getAllProducts = asyncHandler(async (_req, res) => {
   res.status(200).json({
     success: true,
     message: 'All products successfully fetched',
+    products,
+  });
+});
+
+/**
+ * @GET_PRODUCTS
+ * @request_type GET
+ * @route http://localhost:4000/api/v1/products
+ * @description Controller to fetch products based on search keywords and filters like ratings and price
+ * @params search, page, ratings, price
+ * @returns Array of product objects
+ */
+
+export const getProducts = asyncHandler(async (req, res) => {
+  const resultsPerPage = 2;
+
+  const productObj = new WhereClause(Product.find(), req.query)
+    .search()
+    .pagination(resultsPerPage)
+    .filter();
+
+  const products = await productObj.base;
+
+  res.status(200).json({
+    success: true,
+    message: 'Products successfully fetched',
     products,
   });
 });
