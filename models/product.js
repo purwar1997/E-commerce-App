@@ -60,7 +60,7 @@ const productSchema = new mongoose.Schema(
       validate: soldUnits => Number.isInteger(soldUnits) && soldUnits >= 0,
     },
     category: {
-      type: mongoose.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: 'Category',
     },
@@ -74,7 +74,7 @@ const productSchema = new mongoose.Schema(
     reviews: [
       {
         userId: {
-          type: mongoose.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
         },
         name: {
@@ -94,7 +94,7 @@ const productSchema = new mongoose.Schema(
     ],
     addedBy: {
       userId: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',
       },
@@ -106,7 +106,7 @@ const productSchema = new mongoose.Schema(
     },
     lastUpdatedBy: {
       userId: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
       },
       role: {

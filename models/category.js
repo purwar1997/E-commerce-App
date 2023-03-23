@@ -12,7 +12,7 @@ const categorySchema = new mongoose.Schema(
     },
     addedBy: {
       userId: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User',
       },
@@ -24,7 +24,7 @@ const categorySchema = new mongoose.Schema(
     },
     lastUpdatedBy: {
       userId: {
-        type: mongoose.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
       },
       role: {
