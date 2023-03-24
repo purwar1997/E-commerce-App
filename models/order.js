@@ -104,25 +104,30 @@ const orderSchema = new mongoose.Schema(
       default: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
     paymentInfo: {
-      amountPaid: {
-        type: Number,
-        required: true,
-      },
-      paymentMode: {
-        type: String,
-        required: true,
-        enum: {
-          values: ['card', 'upi', 'netbanking', 'wallet'],
-          message: `${VALUE} not supported as a payment mode`,
-        },
-      },
       transactionId: {
         type: String,
         required: true,
       },
-      paymentRefunded: {
-        type: Boolean,
-        default: false,
+      amountPaid: {
+        type: Number,
+        required: true,
+      },
+      paymentMethod: {
+        type: String,
+        required: true,
+        enum: {
+          values: ['card', 'upi', 'netbanking', 'wallet'],
+          message: `${VALUE} not supported as a payment method`,
+        },
+      },
+      refundStatus: {
+        type: String,
+        default: null,
+        enum: [null, 'pending', 'processed', 'failed'],
+      },
+      amountRefunded: {
+        type: Number,
+        default: 0,
       },
     },
     shippedOn: {
