@@ -1,4 +1,4 @@
-import uuid from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import Order from '../models/order.js';
 import Product from '../models/product.js';
 import asyncHandler from '../services/asyncHandler.js';
@@ -24,7 +24,7 @@ export const createRazorpayOrder = asyncHandler(async (req, res) => {
   const order = await razorpay.orders.create({
     amount: amount * 100,
     currency: 'INR',
-    receipt: uuid.v4(),
+    receipt: uuidv4(),
   });
 
   res.status(201).json({
@@ -54,16 +54,21 @@ export const createOrder = asyncHandler(async (req, res) => {
     throw new CustomError('Please provide all the order details', 400);
   }
 
-  const payment = await razorpay.payments.capture(paymentId, orderInfo.totalAmount, 'INR');
+  let payment = await razorpay.payments.fetch(paymentId);
+
+  if (payment.status === 'authorized') {
+    payment = await razorpay.payments.capture(paymentId, orderInfo.totalAmount * 100, 'INR');
+  }
 
   const order = await Order.create({
     orderItems,
     orderInfo,
     shippingInfo,
     user: res.user._id,
+    estimatedDeliveryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     paymentInfo: {
       transactionId: payment.id,
-      amountPaid: payment.amount,
+      amountPaid: payment.amount / 100,
       paymentMethod: payment.method,
     },
   });
@@ -156,23 +161,34 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     throw new CustomError('This order has already been cancelled', 400);
   }
 
-  const refund = await razorpay.payments.refund(order.paymentInfo.transactionId, {
-    amount: order.paymentInfo.amountPaid,
+  const paymentId = order.paymentInfo.transactionId;
+  const payment = await razorpay.payments.fetch(paymentId);
+
+  if (!payment.captured) {
+    throw new CustomError('Only captured payments can be refunded', 400);
+  }
+
+  const refund = await razorpay.payments.refund(paymentId, {
     speed: 'optimum',
   });
 
-  const payment = await razorpay.payments.fetch(order.paymentInfo.transactionId);
-
-  order = await Order.findByIdAndUpdate(orderId, {
-    orderStatus: 'cancelled',
-    estimatedDeliveryDate: undefined,
-    paymentInfo: {
-      $set: {
+  order = await Order.findByIdAndUpdate(
+    orderId,
+    {
+      orderStatus: 'cancelled',
+      paymentInfo: {
+        transactionId: payment.id,
+        amountPaid: payment.amount / 100,
+        paymentMethod: payment.method,
         refundStatus: refund.status,
-        amountRefunded: payment.amount_refunded,
+        amountRefunded: refund.amount / 100,
       },
     },
-  });
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
   order.orderItems.forEach(async ({ product: id, quantity }) => {
     const product = await Product.findById(id);
@@ -257,7 +273,6 @@ export const adminUpdateOrder = asyncHandler(async (req, res) => {
       case 'shipped':
         order.orderStatus = orderStatus;
         order.deliveredOn = new Date();
-        order.estimatedDeliveryDate = undefined;
         order = await order.save();
         break;
 

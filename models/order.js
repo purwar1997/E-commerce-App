@@ -57,7 +57,7 @@ const orderSchema = new mongoose.Schema(
           type: String,
           required: true,
           validate: {
-            validator: code => validator.isPostalCode(code),
+            validator: code => validator.isPostalCode(code, 'any'),
             message: 'Invalid postal code',
           },
         },
@@ -75,7 +75,7 @@ const orderSchema = new mongoose.Schema(
           default: 'India',
           enum: {
             values: countries,
-            message: `We don't offer our services in ${VALUE}`,
+            message: "We don't offer our services in {VALUE}",
           },
         },
       },
@@ -101,7 +101,6 @@ const orderSchema = new mongoose.Schema(
     estimatedDeliveryDate: {
       type: Date,
       required: true,
-      default: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     },
     paymentInfo: {
       transactionId: {
@@ -117,7 +116,7 @@ const orderSchema = new mongoose.Schema(
         required: true,
         enum: {
           values: ['card', 'upi', 'netbanking', 'wallet'],
-          message: `${VALUE} not supported as a payment method`,
+          message: '{VALUE} not supported as a payment method',
         },
       },
       refundStatus: {

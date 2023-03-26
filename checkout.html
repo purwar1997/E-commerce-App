@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Razorpay</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      button {
+        background-color: #1faa59;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        padding: 13px 30px;
+        font-size: 20px;
+      }
+
+      button:hover {
+        cursor: pointer;
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="razorpay-btn">Pay</button>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="./checkout.js"></script>
+  </body>
+</html>
